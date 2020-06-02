@@ -7,21 +7,22 @@ module Main ( main ) where
 
 import Prelude
 
-import Control.Monad    ( unless
-                        , when
-                        )
-import Data.Char        ( toUpper )
+import Control.Exception ( bracket )
+import Control.Monad     ( unless
+                         , when
+                         )
+import Data.Char         ( toUpper )
 import Options.Generic
-import System.Directory ( doesDirectoryExist
-                        , doesFileExist
-                        )
-import System.Exit      ( die )
-import System.IO        ( BufferMode( NoBuffering )
-                        , hGetBuffering
-                        , hSetBuffering
-                        , stdout
-                        )
-import Text.Read        ( readMaybe )
+import System.Directory  ( doesDirectoryExist
+                         , doesFileExist
+                         )
+import System.Exit       ( die )
+import System.IO         ( BufferMode( NoBuffering )
+                         , hGetBuffering
+                         , hSetBuffering
+                         , stdout
+                         )
+import Text.Read         ( readMaybe )
 
 data Options = Options
   { showBefore :: Bool
@@ -46,9 +47,14 @@ insertIntoFile Options {..} = do
     itemPrompt = putStr "Enter new item: " >> getLine
 
 withStdoutMode :: BufferMode -> IO a -> IO a
-withStdoutMode n action = (\o -> set n *> action <* set o) =<< hGetBuffering stdout
-  where
-    set = hSetBuffering stdout
+withStdoutMode n action = bracket
+  (hGetBuffering stdout <* hSetBuffering stdout n)
+  (hSetBuffering stdout)
+  (const action)
+
+-- withStdoutMode n action = (\o -> set n *> action <* set o) =<< hGetBuffering stdout
+--   where
+--     set = hSetBuffering stdout
 
 ensureExists :: FilePath -> IO ()
 ensureExists path = do
