@@ -20,30 +20,25 @@ import Text.Read          ( readMaybe )
 
 main :: IO ()
 main = getArgs >>= \case
-  []     -> oneFilePlease
   [path] -> insertIntoFile path
-  more   -> oneFilePlease
-  where
-    oneFilePlease = die "Please enter exactly one file on the command line."
+  _      -> die "Please enter exactly one file on the command line."
 
 insertIntoFile :: FilePath -> IO ()
 insertIntoFile path = do
-  hSetBuffering stdout NoBuffering
   ensureExists path
+  hSetBuffering stdout NoBuffering
   entries <- lines <$> readFile path
-  putStr "Enter new item: "
-  item <- getLine
-  entries' <- insertIntoItems item entries
-  writeFile path (unlines entries')
+  item <- putStr "Enter new item: " >> getLine
+  writeFile path . unlines =<< insertIntoItems item entries
 
 ensureExists :: FilePath -> IO ()
 ensureExists path = do
   d <- doesDirectoryExist path
-  when d $ die $ "Path " ++ show path ++ " exists but is a directory, not a file!"
+  when d . die $ "Path " ++ show path ++ " exists but is a directory, not a file!"
   f <- doesFileExist path
-  unless f $ writeFile path ""
+  unless f . writeFile path $ ""
 
-data Choice = Q | B | A
+data Choice = A | B | Q
   deriving (Eq, Read, Show)
 
 insertIntoItems :: String -> [String] -> IO [String]
