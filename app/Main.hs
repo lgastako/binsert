@@ -5,21 +5,22 @@
 
 module Main ( main ) where
 
-import Control.Monad      ( unless
-                          , when
-                          )
-import Data.Char          ( toUpper )
+import Prelude
+
+import Control.Monad    ( unless
+                        , when
+                        )
+import Data.Char        ( toUpper )
 import Options.Generic
-import System.Directory   ( doesDirectoryExist
-                          , doesFileExist
-                          )
-import System.Environment ( getArgs )
-import System.Exit        ( die )
-import System.IO          ( BufferMode( NoBuffering )
-                          , hSetBuffering
-                          , stdout
-                          )
-import Text.Read          ( readMaybe )
+import System.Directory ( doesDirectoryExist
+                        , doesFileExist
+                        )
+import System.Exit      ( die )
+import System.IO        ( BufferMode( NoBuffering )
+                        , hSetBuffering
+                        , stdout
+                        )
+import Text.Read        ( readMaybe )
 
 data Options = Options
   { showBefore :: Bool

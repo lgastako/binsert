@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d7f852fbb732f5b97af73bc35a2cf887966bcc53b66c9987ea094847a94a12a3
+-- hash: 6fa575b8fdca46aa987e48bf8685b93aa9214ac6228bb4301b94b53a6392df50
 
 name:           binsert
 version:        0.1.0.0
@@ -33,7 +33,7 @@ executable binsert
       Paths_binsert
   hs-source-dirs:
       app
-  ghc-options: -Weverything -Werror -Wno-all-missed-specialisations -Wno-missed-specialisations -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-safe -Wno-unsafe -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Weverything -Werror -Wno-all-missed-specialisations -Wno-missed-specialisations -Wno-missing-deriving-strategies -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-safe -Wno-unsafe -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , directory
