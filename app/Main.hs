@@ -39,12 +39,16 @@ insertIntoFile Options {..} = do
   ensureExists path
   content <- readFile path
   when showBefore $ putStr content
-  buffering <- hGetBuffering stdout
-  hSetBuffering stdout NoBuffering
-  item <- putStr "Enter new item: " >> getLine
-  writeFile path . unlines =<< insertIntoItems item (lines content)
-  hSetBuffering stdout buffering
+  withStdoutMode NoBuffering $
+    writeFile path . unlines =<< insertIntoItems (lines content) =<< itemPrompt
   when showAfter $ putStr =<< readFile path
+  where
+    itemPrompt = putStr "Enter new item: " >> getLine
+
+withStdoutMode :: BufferMode -> IO a -> IO a
+withStdoutMode n action = (\o -> set n *> action <* set o) =<< hGetBuffering stdout
+  where
+    set = hSetBuffering stdout
 
 ensureExists :: FilePath -> IO ()
 ensureExists path = do
@@ -56,9 +60,9 @@ ensureExists path = do
 data Choice = A | B | Q
   deriving (Eq, Read, Show)
 
-insertIntoItems :: String -> [String] -> IO [String]
-insertIntoItems item []    = pure [item]
-insertIntoItems item items = go ([], items, [])
+insertIntoItems :: [String] -> String -> IO [String]
+insertIntoItems []    item = pure [item]
+insertIntoItems items item = go ([], items, [])
   where
     go (a, mid, c) = do
       putStr . unlines $
@@ -68,15 +72,16 @@ insertIntoItems item items = go ([], items, [])
         , "  target: " ++ show target
         ]
       getChoice >>= \case
-        A -> (a ++) . (++ (target:suf ++ c)) <$> insertIntoItems item pre
-        B -> ((a ++ pre ++ [target]) ++) . (++ c) <$> insertIntoItems item suf
+        A ->  (a ++) . (++ (target:suf      ++ c)) <$> insertIntoItems pre item
+        B -> ((a ++ pre ++ [target]) ++) . (++ c)  <$> insertIntoItems suf item
         Q -> die "Aborted."
       where
         (pre, suf, target) = case splitAt (length mid `div` 2) mid of
-          ([], [])   -> ([], [item], [])
-          (ps, s:ss) -> (ps, ss, s)
-          (ps, [])   -> (init ps, [], last ps)
+          ([], [])   -> ([],      [item], []     )
+          (ps, s:ss) -> (ps,      ss,     s      )
+          (ps, [])   -> (init ps, [],     last ps)
 
-    getChoice = do
-      s <- readMaybe . map toUpper <$> (putStr "> " >> getLine)
-      maybe (putStrLn "Pease enter 'a', 'b' or 'q'." >> getChoice) pure s
+    getChoice = maybe choices pure =<< readMaybe . map toUpper <$> prompt
+      where
+        prompt  = putStr "> " >> getLine
+        choices = putStrLn "Pease enter 'a', 'b' or 'q'." >> getChoice
