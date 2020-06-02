@@ -15,9 +15,22 @@ category:            File
 
 description:         README at <https://github.com/lgastako/binsert#readme>
 
+ghc-options:
+- -Weverything
+- -Werror
+- -Wno-all-missed-specialisations
+- -Wno-missed-specialisations
+- -Wno-missing-exported-signatures
+- -Wno-missing-import-lists
+- -Wno-missing-local-signatures
+- -Wno-monomorphism-restriction
+- -Wno-safe
+- -Wno-unsafe
+
 dependencies:
 - base >= 4.7 && < 5
 - directory
+- optparse-generic
 
 executables:
   binsert:

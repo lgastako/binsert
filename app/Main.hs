@@ -1,4 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Main ( main ) where
 
@@ -6,6 +9,7 @@ import Control.Monad      ( unless
                           , when
                           )
 import Data.Char          ( toUpper )
+import Options.Generic
 import System.Directory   ( doesDirectoryExist
                           , doesFileExist
                           )
@@ -17,18 +21,26 @@ import System.IO          ( BufferMode( NoBuffering )
                           )
 import Text.Read          ( readMaybe )
 
-main :: IO ()
-main = getArgs >>= \case
-  [path] -> insertIntoFile path
-  _      -> die "Please enter exactly one file on the command line."
+data Options = Options
+  { showBefore :: Bool
+  , showAfter  :: Bool
+  , path       :: FilePath
+  } deriving (Generic, Show)
 
-insertIntoFile :: FilePath -> IO ()
-insertIntoFile path = do
+instance ParseRecord Options
+
+main :: IO ()
+main = getRecord "binsert" >>= insertIntoFile
+
+insertIntoFile :: Options -> IO ()
+insertIntoFile Options {..} = do
   ensureExists path
   hSetBuffering stdout NoBuffering
-  entries <- lines <$> readFile path
+  content <- readFile path
+  when showBefore $ putStr content
   item <- putStr "Enter new item: " >> getLine
-  writeFile path . unlines =<< insertIntoItems item entries
+  writeFile path . unlines =<< insertIntoItems item (lines content)
+  when showAfter $ putStr =<< readFile path
 
 ensureExists :: FilePath -> IO ()
 ensureExists path = do
