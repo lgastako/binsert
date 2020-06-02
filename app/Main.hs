@@ -60,7 +60,6 @@ insertIntoItems :: String -> [String] -> IO [String]
 insertIntoItems item []    = pure [item]
 insertIntoItems item items = go ([], items, [])
   where
-    -- go (a, [] , c) = pure $ a ++ item:c
     go (a, mid, c) = do
       putStr . unlines $
         [ "Select whether the item should go [A]bove or [B]elow the target"
