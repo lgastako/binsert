@@ -1,12 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Main where
+module Main ( main ) where
 
 import Control.Monad      ( unless
                           , when
                           )
 import Data.Char          ( toUpper )
-import Data.List          ( splitAt )
 import System.Directory   ( doesDirectoryExist
                           , doesFileExist
                           )
@@ -45,24 +44,24 @@ insertIntoItems :: String -> [String] -> IO [String]
 insertIntoItems item []    = pure [item]
 insertIntoItems item items = go ([], items, [])
   where
-    go (before, []    , after) = pure $ before ++ item:after
-    go (before, during, after) = do
-      let idx        = length during `div` 2
-          (pre, suf) = splitAt idx during
-          (pre', suf', target) = case (pre, suf) of
-            ([], [])   -> error "how do this occur?"
-            (ps, s:ss) -> (ps, ss, s)
-            (ps, [])   -> (init ps, [], last ps)
-      putStrLn $ "Select whether the item should go [A]bove or [B]elow the target"
-      putStrLn $ "(Or [Q]uit to abort)."
-      putStrLn $ "    item: " ++ show item
-      putStrLn $ "  target: " ++ show target
+    -- go (a, [] , c) = pure $ a ++ item:c
+    go (a, mid, c) = do
+      putStr . unlines $
+        [ "Select whether the item should go [A]bove or [B]elow the target"
+        , "(Or [Q]uit to abort)."
+        , "    item: " ++ show item
+        , "  target: " ++ show target
+        ]
       getChoice >>= \case
-        A -> (before ++) . (++ (target:suf' ++ after)) <$> insertIntoItems item pre'
-        B -> ((before ++ pre' ++ [target]) ++) . (++ after) <$> insertIntoItems item suf'
+        A -> (a ++) . (++ (target:suf ++ c)) <$> insertIntoItems item pre
+        B -> ((a ++ pre ++ [target]) ++) . (++ c) <$> insertIntoItems item suf
         Q -> die "Aborted."
+      where
+        (pre, suf, target) = case splitAt (length mid `div` 2) mid of
+          ([], [])   -> ([], [item], [])
+          (ps, s:ss) -> (ps, ss, s)
+          (ps, [])   -> (init ps, [], last ps)
 
     getChoice = do
-      putStr $ "> "
-      s <- map toUpper <$> getLine
-      maybe (putStrLn "Pease enter 'a', 'b' or 'q'." >> getChoice) pure $ readMaybe s
+      s <- readMaybe . map toUpper <$> (putStr "> " >> getLine)
+      maybe (putStrLn "Pease enter 'a', 'b' or 'q'." >> getChoice) pure s
