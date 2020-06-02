@@ -17,6 +17,7 @@ import System.Directory ( doesDirectoryExist
                         )
 import System.Exit      ( die )
 import System.IO        ( BufferMode( NoBuffering )
+                        , hGetBuffering
                         , hSetBuffering
                         , stdout
                         )
@@ -36,11 +37,13 @@ main = getRecord "binsert" >>= insertIntoFile
 insertIntoFile :: Options -> IO ()
 insertIntoFile Options {..} = do
   ensureExists path
-  hSetBuffering stdout NoBuffering
   content <- readFile path
   when showBefore $ putStr content
+  buffering <- hGetBuffering stdout
+  hSetBuffering stdout NoBuffering
   item <- putStr "Enter new item: " >> getLine
   writeFile path . unlines =<< insertIntoItems item (lines content)
+  hSetBuffering stdout buffering
   when showAfter $ putStr =<< readFile path
 
 ensureExists :: FilePath -> IO ()
